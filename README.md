@@ -25,6 +25,7 @@ https://piersdeseilligny.com/work/software/betterfountain/
 * Industry-standard PDF generation
     * Includes scenes and sections as PDF bookmarks, for easy navigation in your reader of choice
     * Possible to highlight any specified characters in the PDF
+    * Optionally highlight lines that changed since a chosen git commit (with asterisks and/or a colour of your choice)
 * Full screenplay outline
     * Includes sections, scenes, notes, and synopses (the visibility of each type of item being easily and quickly toggleable)
 * "Folding" scenes and sections
