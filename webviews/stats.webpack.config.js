@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require("webpack");
 
 module.exports = {
+  mode: 'production',
   entry: './webviews/src/stats.js',
   output: {
     path: path.resolve(__dirname, 'out'),

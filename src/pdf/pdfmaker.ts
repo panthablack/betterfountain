@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import helpers from "../helpers";
 import { openFile, revealFile, trimCharacterExtension, wordToColor } from "../utils";
 import * as he from 'he';
-import * as addTextbox from 'textbox-for-pdfkit';
+import addTextbox from 'textbox-for-pdfkit';
 import { regex } from "../afterwriting-parser";
 import { Base64Encode } from "base64-stream";
 

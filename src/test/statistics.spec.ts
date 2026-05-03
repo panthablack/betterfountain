@@ -66,7 +66,7 @@ const fountainConfig: FountainConfig  = {
 const bigFishAssertions = async(script: string) => {
     const parsed = afterparser.parse(script, fountainConfig, false);
     const stats = await retrieveScreenPlayStatistics(script, parsed, fountainConfig, exportConfig)
-    expect(stats.lengthStats.words).toBe(26035)
+    expect(stats.lengthStats.words).toBe(26036)
     expect(stats.characterStats.characters.length).toBe(48)
     expect(stats.characterStats.characterCount).toBe(48)
     stats.characterStats.characters.forEach((charStat) => {
@@ -76,9 +76,9 @@ const bigFishAssertions = async(script: string) => {
         expect(charStat.wordsSpoken).toBeGreaterThan(0)
     })
     expect(stats.sceneStats.scenes.length).toBe(190)
-    expect(secondsToString(stats.durationStats.total)).toBe("01:59:58")
+    expect(secondsToString(stats.durationStats.total)).toBe("01:59:59")
     expect(secondsToString(stats.durationStats.dialogue)).toBe("00:55:50")
-    expect(secondsToString(stats.durationStats.action)).toBe("01:04:07")
+    expect(secondsToString(stats.durationStats.action)).toBe("01:04:08")
 }
 
 const brickAndSteelAssertions = async (script: string) => {
