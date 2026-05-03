@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Bash(pwd)",
+      "Bash(node -v)",
+      "Bash(npm -v)",
+      "Bash(pnpm -v)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(rg *)",
+      "Bash(grep *)",
+      "Bash(cat *)",
+      "Bash(sed *)",
+      "Bash(awk *)",
+      "Bash(npm install*)",
+      "Bash(npm ci*)",
+      "Bash(npm run *)",
+      "Bash(npx *)",
+      "Bash(vite *)",
+      "Bash(vitest *)",
+      "Bash(eslint *)",
+      "Bash(prettier *)",
+      "Bash(tsc *)"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "Bash(git stash*)",
+      "Bash(git commit*)",
+      "Bash(git pull*)",
+      "Bash(git -C*)",
+      "Bash(gh *)",
+      "Bash(wget *)"
+    ]
+  }
+}
