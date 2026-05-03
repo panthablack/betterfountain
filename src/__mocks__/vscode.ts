@@ -95,6 +95,13 @@ const commands = {
   registerCommand: jest.fn(),
 }
 
+const extensions = {
+  getExtension: jest.fn(() => ({
+    extensionPath: "",
+    packageJSON: { name: "betterfountain", version: "0.0.0" },
+  })),
+}
+
 const CodeLens = function CodeLens() {}
 class Position {
   constructor (public readonly line: number, public readonly character: number) {}
@@ -121,5 +128,6 @@ export {
   DiagnosticSeverity,
   debug,
   commands,
+  extensions,
   EventEmitter,
 }

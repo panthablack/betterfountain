@@ -4,7 +4,6 @@ import { ExtensionContext, languages, TextDocument } from 'vscode';
 import * as vscode from 'vscode';
 import * as afterparser from "./afterwriting-parser";
 import { getActiveFountainDocument, getEditor, secondsToString, overwriteSceneNumbers, updateSceneNumbers } from "./utils";
-import * as telemetry from "./telemetry";
 import { FountainFoldingRangeProvider } from "./providers/Folding";
 import { FountainCompletionProvider } from "./providers/Completion";
 import { FountainSymbolProvider } from "./providers/Symbols";
@@ -14,7 +13,6 @@ import { createPreviewPanel, FountainPreviewSerializer, getPreviewsToUpdate } fr
 import { createStatisticsPanel, FountainStatsPanelserializer as FountainStatsPanelSerializer, getStatisticsPanels, refreshStatsPanel, updateDocumentVersionStats } from "./providers/Statistics";
 import { FountainOutlineTreeDataProvider } from "./providers/Outline";
 import { FountainCharacterTreeDataProvider } from "./providers/Characters";
-import { performance } from "perf_hooks";
 import { exportHtml } from "./providers/StaticHtml";
 import { FountainCheatSheetWebviewViewProvider } from "./providers/Cheatsheet";
 import { createPdfPreviewPanel, FountainPdfPanelserializer, getPdfPreviewPanels, refreshPdfPanel, updateDocumentVersionPdfPreview } from "./providers/PdfPreview";
@@ -54,8 +52,6 @@ export let diagnostics: vscode.Diagnostic[] = [];
  */
 export function activate(context: ExtensionContext) {
 
-  telemetry.initTelemetry();
-
   registerOutlineTreeView();
   registerCharactersTreeView();
   registerLocationsTreeView();
@@ -69,11 +65,9 @@ export function activate(context: ExtensionContext) {
   //Register Commands
   context.subscriptions.push(vscode.commands.registerCommand('fountain.livepreview', () => {
     createPreviewPanel(vscode.window.activeTextEditor, true);
-    telemetry.reportTelemetry("command:fountain.livepreview");
   }));
   context.subscriptions.push(vscode.commands.registerCommand('fountain.livepreviewstatic', () => {
     createPreviewPanel(vscode.window.activeTextEditor, false);
-    telemetry.reportTelemetry("command:fountain.livepreviewstatic");
   }));
   context.subscriptions.push(vscode.commands.registerCommand('fountain.pdfpreview', createPdfPreviewPanel));
   context.subscriptions.push(vscode.commands.registerCommand('fountain.statistics', createStatisticsPanel));
@@ -90,7 +84,6 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(vscode.commands.registerCommand('fountain.outline.visibleitems', commands.visibleItems));
   context.subscriptions.push(vscode.commands.registerCommand('fountain.outline.reveal', () => {
     outlineViewProvider.reveal();
-    telemetry.reportTelemetry("command:fountain.outline.reveal");
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('fountain.debugtokens', commands.debugTokens));
@@ -240,12 +233,7 @@ export class FountainStructureProperties {
 var fontTokenExisted: boolean = false;
 const decortypesDialogue = vscode.window.createTextEditorDecorationType({});
 
-let parseTelemetryLimiter = 5;
-let parseTelemetryFrequency = 5;
-
 export function parseDocument(document: TextDocument) {
-  let t0 = performance.now()
-
   clearDecorations();
 
   let previewsToUpdate = getPreviewsToUpdate(document.uri)
@@ -303,14 +291,6 @@ export function parseDocument(document: TextDocument) {
   }
   updateStatus(output.lengthAction, output.lengthDialogue);
   showDecorations(document.uri);
-
-  let t1 = performance.now()
-  let parseTime = t1 - t0;
-  if (parseTelemetryLimiter == parseTelemetryFrequency) {
-    telemetry.reportTelemetry("afterparser.parsing", undefined, { linecount: document.lineCount, parseduration: parseTime });
-  }
-  parseTelemetryLimiter--;
-  if (parseTelemetryLimiter == 0) parseTelemetryLimiter = parseTelemetryFrequency;
 }
 
 vscode.window.onDidChangeActiveTextEditor(change => {

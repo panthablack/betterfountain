@@ -21,10 +21,12 @@ function secondsToString(seconds: number){
 
 const exportConfig: ExportConfig  =  {
     highlighted_characters: [],
+    highlighted_changes: { lines: [], highlightColor: [] },
 };
 
 const fountainConfig: FountainConfig  = {
     refresh_stats_on_save: false,
+    refresh_pdfpreview_on_save: false,
     number_scenes_on_save:  false,
     embolden_scene_headers: false,
     embolden_character_names: false,

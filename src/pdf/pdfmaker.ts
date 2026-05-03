@@ -11,7 +11,6 @@ import * as addTextbox from 'textbox-for-pdfkit';
 import { regex } from "../afterwriting-parser";
 import { Base64Encode } from "base64-stream";
 
-// import * as blobUtil from "blob-util";
 export class Options {
     filepath: string;
     config: fountainconfig.FountainConfig;
@@ -20,9 +19,7 @@ export class Options {
     font: string;
     exportconfig: fountainconfig.ExportConfig;
 }
-var PDFDocument = require('pdfkit'),
-    //helper = require('../helpers'),
-    Blob = require('blob');
+var PDFDocument = require('pdfkit');
 
 var create_simplestream = function (filepath: string) {
     var simplestream: any = {
@@ -77,16 +74,12 @@ var create_simplestream = function (filepath: string) {
 
                 stream.on('open', function () {
                     simplestream.chunks.forEach(function (buffer: any) {
-                        stream.write(new Buffer(buffer.toString('base64'), 'base64'));
+                        stream.write(Buffer.from(buffer.toString('base64'), 'base64'));
                     });
                     stream.end();
                 });
 
             } else {
-                simplestream.blob = new Blob(simplestream.chunks, {
-                    type: "application/pdf"
-                });
-                // simplestream.url = blobUtil.createObjectURL(this.blob);
                 this.callback(simplestream);
             }
         }

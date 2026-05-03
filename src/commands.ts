@@ -6,7 +6,6 @@ import * as vscode from 'vscode';
 import * as afterparser from "./afterwriting-parser";
 import { GeneratePdf } from "./pdf/pdf";
 import { getActiveFountainDocument, getEditor, openFile, shiftScenes } from "./utils";
-import * as telemetry from "./telemetry";
 
 export async function exportPdf(showSaveDialog: boolean = true, openFileOnSave: boolean = false, highlightCharacters = false, highlightChanges = false) {
   var canceled = false;
@@ -15,7 +14,6 @@ export async function exportPdf(showSaveDialog: boolean = true, openFileOnSave: 
 
 
   var config = getFountainConfig(getActiveFountainDocument());
-  telemetry.reportTelemetry("command:fountain.exportpdf");
 
   var parsed = await afterparser.parse(editor.document.getText(), config, false);
 
@@ -153,7 +151,6 @@ export function shiftScenesUpDn (direction: number) {
     return;
 
   shiftScenes(editor, parsed, direction);
-  telemetry.reportTelemetry("command:fountain.shiftScenes");
   lastShiftedParseId = parsed.parseTime + "_" + direction;
 }
 
@@ -231,5 +228,4 @@ export function jumpTo(args: any) {
         p.panel.webview.postMessage({ command: 'scrollTo', content: args });
     });
   }
-  telemetry.reportTelemetry("command:fountain.jumpto");
 }

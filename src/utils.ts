@@ -3,7 +3,6 @@ import { previews } from "./providers/Preview";
 import { FountainStructureProperties } from "./extension";
 import * as parser from "./afterwriting-parser";
 import * as path from "path";
-import * as telemetry from "./telemetry";
 import * as sceneNumbering from './scenenumbering';
 import * as fs from "fs";
 
@@ -203,7 +202,6 @@ export function secondsToMinutesString(seconds:number):string{
 }
 
 export const overwriteSceneNumbers = () => {
-	telemetry.reportTelemetry("command:fountain.overwriteSceneNumbers");
 	const fullText = vscode.window.activeTextEditor.document.getText()
 	const clearedText = clearSceneNumbers(fullText);
 	writeSceneNumbers(clearedText);
@@ -213,7 +211,6 @@ export const overwriteSceneNumbers = () => {
 }
 
 export const updateSceneNumbers = () => {
-	telemetry.reportTelemetry("command:fountain.updateSceneNumbers");
 	const fullText = vscode.window.activeTextEditor.document.getText()
 	writeSceneNumbers(fullText);
 }
@@ -378,22 +375,6 @@ export function revealFile(p:string){
 
 export function assetsPath(): string{
     return __dirname;
-}
-interface IPackageInfo {
-	name: string;
-	version: string;
-	aiKey: string;
-}
-export function getPackageInfo(): IPackageInfo | null {
-	const extension = vscode.extensions.getExtension('piersdeseilligny.betterfountain');
-	if (extension && extension.packageJSON) {
-		return {
-			name: extension.packageJSON.name,
-			version: extension.packageJSON.version,
-			aiKey: extension.packageJSON.aiKey
-		};
-	}
-	return null;
 }
 //Simple n-bit hash
 function nPearsonHash(message: string, n = 8): number {

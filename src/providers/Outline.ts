@@ -179,8 +179,8 @@ class NoteTreeItem extends OutlineTreeItem {
 		super("", token.line.toString(), parent)
 
 		this.iconPath = {
-			light: __filename + '/../../../assets/note_light_offset.svg',
-			dark: __filename + '/../../../assets/note_dark_offset.svg'
+			light: vscode.Uri.file(__filename + '/../../../assets/note_light_offset.svg'),
+			dark: vscode.Uri.file(__filename + '/../../../assets/note_dark_offset.svg')
 		};
 		this.description = token.note;
 		this.tooltip = this.description;
