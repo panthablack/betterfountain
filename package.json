@@ -280,6 +280,11 @@
 						"default": true,
 						"markdownDescription": "If `#fountain.pdf.printSections#` is false, add a bookmark for the section to the following scene header instead"
 					},
+					"fountain.pdf.defaultExportPath": {
+						"type": "string",
+						"default": "",
+						"description": "Default folder for PDF exports. Leave empty to save next to the screenplay file."
+					},
 					"fountain.pdf.textMORE": {
 						"type": "string",
 						"default": "(MORE)",

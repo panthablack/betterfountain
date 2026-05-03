@@ -3,6 +3,7 @@ import { parsedDocuments, outlineViewProvider } from "./extension";
 import { previews } from "./providers/Preview";
 import { getFountainConfig, ExportConfig, changeFountainUIPersistence, uiPersistence } from "./configloader";
 import * as vscode from 'vscode';
+import * as path from 'path';
 import * as afterparser from "./afterwriting-parser";
 import { GeneratePdf } from "./pdf/pdf";
 import { getActiveFountainDocument, getEditor, openFile, shiftScenes } from "./utils";
@@ -120,6 +121,11 @@ export async function exportPdf(showSaveDialog: boolean = true, openFileOnSave: 
 
   }
   filename += '.pdf'; //screenplay -> screenplay.pdf
+
+  var defaultExportPath = vscode.workspace.getConfiguration("fountain.pdf").get("defaultExportPath", "");
+  if (defaultExportPath) {
+    filename = path.join(defaultExportPath, path.basename(filename));
+  }
 
   var saveuri = vscode.Uri.file(filename);
   var filepath: vscode.Uri = undefined;
