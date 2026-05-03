@@ -348,14 +348,18 @@ export function fileToBase64(fspath:string){
 }
 
 export function openFile(p:string){
-	let cmd = "xdg-open"
-	switch (process.platform) { 
-		case 'darwin' : cmd = 'open'; break;
-		case 'win32' : cmd = ''; break;
-		default : cmd = 'xdg-open';
+	if (process.platform === 'linux' && process.env.WSL_DISTRO_NAME) {
+		// Inside WSL: openExternal returns a vscode-remote:// URI that Windows can't handle.
+		// Translate to a Windows path and let explorer.exe open it with the default app.
+		const exec = require('child_process').exec;
+		exec(`wslpath -w "${p}"`, (err: Error | null, stdout: string) => {
+			if (err) return;
+			const winPath = stdout.trim();
+			exec(`explorer.exe "${winPath}"`);
+		});
+		return;
 	}
-	var exec = require('child_process').exec;
-	exec(`${cmd} "${p}"`); 
+	vscode.env.openExternal(vscode.Uri.file(p));
 }
 export function revealFile(p:string){
 	var cmd = "";
