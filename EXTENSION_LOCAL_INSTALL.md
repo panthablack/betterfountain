@@ -1,6 +1,9 @@
 # Build/Install Instructions
 
 ```bash
+# Install project dependenciew
+npm install
+
 # Install the extension package creator
 npm install -g @vscode/vsce
 
