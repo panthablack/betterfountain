@@ -28,6 +28,20 @@ export var GeneratePdf = function (outputpath: string, config: FountainConfig, e
     }
     var current_index = 0, previous_type: string = null;
 
+    // Source line of the first title-page entry, if any. Sections that appear
+    // before this in source are conceptually describing the title page itself,
+    // so their bookmarks should anchor to it rather than the first body page.
+    let firstTitlePageLine = Infinity;
+    if (parsedDocument.title_page) {
+        for (const section of Object.keys(parsedDocument.title_page)) {
+            for (const tok of parsedDocument.title_page[section]) {
+                if (typeof tok.line === 'number' && tok.line < firstTitlePageLine) {
+                    firstTitlePageLine = tok.line;
+                }
+            }
+        }
+    }
+
     // tidy up separators
     let invisibleSections = [];
     while (current_index < parsedDocument.tokens.length) {
@@ -41,9 +55,12 @@ export var GeneratePdf = function (outputpath: string, config: FountainConfig, e
             (!config.print_synopsis && current_token.type === "synopsis") ||
             (!config.print_dialogues && current_token.is_dialogue()) ||
             (config.merge_empty_lines && current_token.is("separator") && previous_type === "separator")) {
-            
+
                 if(current_token.type == "section"){
                     //on the next scene header, add an invisible section (for keeping track of sections when creating bookmarks and generating pdf-side)
+                    if (firstTitlePageLine !== Infinity && current_token.line < firstTitlePageLine) {
+                        current_token.bookmarkTitlePage = true;
+                    }
                     invisibleSections.push(current_token);
                 }
                 parsedDocument.tokens.splice(current_index, 1);
