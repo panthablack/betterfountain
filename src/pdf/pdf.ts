@@ -29,31 +29,26 @@ export var GeneratePdf = function (outputpath: string, config: FountainConfig, e
     var current_index = 0, previous_type: string = null;
 
     // tidy up separators
-    let invisibleSections = [];
     while (current_index < parsedDocument.tokens.length) {
         var current_token = parsedDocument.tokens[current_index];
+
+        // When sections aren't being printed, mark the token noprint so pdfmaker
+        // can still bookmark it but skip layout — keeps the token in the stream
+        // rather than splicing it out and re-attaching to the next scene header.
+        if (!config.print_sections && current_token.type === "section") {
+            current_token.noprint = true;
+        }
 
         if (current_token.type == "dual_dialogue_begin" || current_token.type == "dialogue_begin" || current_token.type == "dialogue_end" || current_token.type == "dual_dialogue_end" ||
             (!config.print_actions && current_token.is("action", "transition", "centered", "shot")) ||
             (!config.print_notes && current_token.type === "note") ||
             (!config.print_headers && current_token.type === "scene_heading") ||
-            (!config.print_sections && current_token.type === "section") ||
             (!config.print_synopsis && current_token.type === "synopsis") ||
             (!config.print_dialogues && current_token.is_dialogue()) ||
             (config.merge_empty_lines && current_token.is("separator") && previous_type === "separator")) {
-            
-                if(current_token.type == "section"){
-                    //on the next scene header, add an invisible section (for keeping track of sections when creating bookmarks and generating pdf-side)
-                    invisibleSections.push(current_token);
-                }
-                parsedDocument.tokens.splice(current_index, 1);
 
+                parsedDocument.tokens.splice(current_index, 1);
                 continue;
-        }
-        if(current_token.type == "scene_heading"){
-            if(invisibleSections.length>0)
-            current_token.invisibleSections = invisibleSections;
-            invisibleSections = [];
         }
 
         if (config.double_space_between_scenes && current_token.is("scene_heading") && current_token.number !== 1) {

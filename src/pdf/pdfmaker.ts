@@ -519,7 +519,9 @@ async function generate(doc: any, opts: any, lineStructs?: Map<number, lineStruc
         current_section_token: any,
         section_number = helpers.version_generator(),
         text,
-        after_section = false; // helpful to determine synopsis indentation
+        after_section = false, // helpful to determine synopsis indentation
+        pageHasContent = false,
+        seenAnyPageBreak = false;
 
     var print_header_and_footer = function (continuation_header?: string) {
         if (cfg.print_header) {
@@ -602,9 +604,18 @@ async function generate(doc: any, opts: any, lineStructs?: Map<number, lineStruc
     let currentScene: string = "";
     let currentSections: string[] = [];
     let currentDuration: number = 0;
-    lines.forEach(function (line: any) {
+    lines.forEach(function (line: any, lineIdx: number) {
 
         if (line.type === "page_break") {
+
+            // Track that we've seen a break even when we end up skipping it,
+            // so the front-matter retarget logic below knows we're past the top.
+            seenAnyPageBreak = true;
+            // Skip a page break before any visible content has been rendered —
+            // otherwise a `===` after a leading invisible section produces a
+            // blank page between the title page and script page 1.
+            if (!pageHasContent) return;
+            pageHasContent = false;
 
             if (cfg.scene_continuation_bottom && line.scene_split) {
                 var scene_continued_text = '(' + (cfg.text_scene_continued || 'CONTINUED') + ')';
@@ -705,14 +716,13 @@ async function generate(doc: any, opts: any, lineStructs?: Map<number, lineStruc
                     feed = print.action.feed + print.action.max * print.font_width - line.text.length * print.font_width;
                 }
 
-                var hasInvisibleSection = (line.type === "scene_heading" && line.token.invisibleSections != undefined)
                 function processSection(sectiontoken: any) {
                     let sectiontext = sectiontoken.text;
                     current_section_level = sectiontoken.level;
                     currentSections.length = sectiontoken.level - 1;
 
                     currentSections.push(he.encode(sectiontext));
-                    if (!hasInvisibleSection)
+                    if (!sectiontoken.noprint)
                         feed += current_section_level * print.section.level_indent;
                     if (cfg.number_sections) {
                         if (sectiontoken !== current_section_token) {
@@ -724,27 +734,43 @@ async function generate(doc: any, opts: any, lineStructs?: Map<number, lineStruc
                         }
 
                     }
+                    var addedItem: any = null;
                     if (cfg.create_bookmarks) {
-                        if (hasInvisibleSection && !cfg.invisible_section_bookmarks) return;
                         var oc = getOutlineChild(outline, sectiontoken.level - 1, 0);
                         if (oc != undefined)
-                            oc.addItem(sectiontext);
+                            addedItem = oc.addItem(sectiontext);
                     }
-                    if (!hasInvisibleSection) {
+                    if (!sectiontoken.noprint) {
                         text = sectiontext;
                     }
                     outlineDepth = sectiontoken.level;
+                    return addedItem;
                 }
-                if (line.type === 'section' || hasInvisibleSection) {
-                    if (hasInvisibleSection) {
-                        for (let i = 0; i < line.token.invisibleSections.length; i++) {
-                            processSection(line.token.invisibleSections[i]);
+                if (line.type === 'section') {
+                    var sectionItem = processSection(line.token);
+                    if (line.token.noprint) {
+                        // A noprint section at the very top of the document — before any
+                        // rendering or page break — that is immediately followed by `===`
+                        // belongs to the page BEFORE the break (the title page). PDFKit
+                        // captures doc.page at addItem() time, which by then has already
+                        // advanced to script page 1, so retarget the outline Dest.
+                        if (sectionItem && !pageHasContent && !seenAnyPageBreak) {
+                            var nextSig: any = null;
+                            for (var li = lineIdx + 1; li < lines.length; li++) {
+                                var ll = lines[li];
+                                if (ll.type === 'separator' || ll.type === 'section') continue;
+                                nextSig = ll;
+                                break;
+                            }
+                            if (nextSig && nextSig.type === 'page_break') {
+                                var pageKids = doc._root.data.Pages.data.Kids;
+                                if (pageKids.length >= 2) {
+                                    sectionItem.outlineData['Dest'] = [pageKids[pageKids.length - 2], 'Fit'];
+                                }
+                            }
                         }
+                        return; // skip doc.text2 + y++ for invisible sections
                     }
-                    else {
-                        processSection(line.token);
-                    }
-
                 }
 
                 if (line.type === "scene_heading") {
@@ -789,6 +815,7 @@ async function generate(doc: any, opts: any, lineStructs?: Map<number, lineStruc
                 }
 
                 doc.text2(text, feed, print.top_margin + print.font_height * y, text_properties);
+                pageHasContent = true;
                 if (line.linediff) {
                     y += line.linediff;
                 }
