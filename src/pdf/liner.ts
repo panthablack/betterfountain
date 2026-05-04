@@ -143,7 +143,9 @@ export class Liner {
     };
 
     break_lines = (lines:any, max:number, breaker:any, cfg:any):any => {
-        while (lines.length && !(lines[0].text)) {
+        // Strip leading text-less lines (e.g., separators), but preserve any
+        // that carry invisibleSections so their bookmarks aren't dropped.
+        while (lines.length && !(lines[0].text) && !(lines[0].token && lines[0].token.invisibleSections)) {
             lines.shift();
         }
 

@@ -50,10 +50,11 @@ export var GeneratePdf = function (outputpath: string, config: FountainConfig, e
 
                 continue;
         }
-        if(current_token.type == "scene_heading"){
-            if(invisibleSections.length>0)
-            current_token.invisibleSections = invisibleSections;
-            invisibleSections = [];
+        if(current_token.type !== "section"){
+            if(invisibleSections.length > 0){
+                current_token.invisibleSections = invisibleSections;
+                invisibleSections = [];
+            }
         }
 
         if (config.double_space_between_scenes && current_token.is("scene_heading") && current_token.number !== 1) {
@@ -68,6 +69,13 @@ export var GeneratePdf = function (outputpath: string, config: FountainConfig, e
     // clean separators at the end
     while (parsedDocument.tokens.length > 0 && parsedDocument.tokens[parsedDocument.tokens.length - 1].type === "separator") {
         parsedDocument.tokens.pop();
+    }
+
+    // attach any trailing invisible sections (sections after the last renderable token)
+    // to the final surviving token so they bookmark at the end of the document instead of being dropped
+    if (invisibleSections.length > 0 && parsedDocument.tokens.length > 0) {
+        var lastToken = parsedDocument.tokens[parsedDocument.tokens.length - 1];
+        lastToken.invisibleSections = (lastToken.invisibleSections || []).concat(invisibleSections);
     }
 
     if (!config.print_watermark && watermark != undefined)

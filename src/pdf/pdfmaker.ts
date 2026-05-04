@@ -604,6 +604,40 @@ async function generate(doc: any, opts: any, lineStructs?: Map<number, lineStruc
     let currentDuration: number = 0;
     lines.forEach(function (line: any) {
 
+        function processSection(sectiontoken: any, isHost: boolean) {
+            let sectiontext = sectiontoken.text;
+            current_section_level = sectiontoken.level;
+            currentSections.length = sectiontoken.level - 1;
+            currentSections.push(he.encode(sectiontext));
+            if (cfg.number_sections) {
+                if (sectiontoken !== current_section_token) {
+                    current_section_number = section_number(sectiontoken.level);
+                    current_section_token = sectiontoken;
+                    sectiontext = current_section_number + '. ' + sectiontext;
+                } else {
+                    sectiontext = Array(current_section_number.length + 3).join(' ') + sectiontext;
+                }
+            }
+            if (cfg.create_bookmarks) {
+                if (!isHost && !cfg.invisible_section_bookmarks) return;
+                var oc = getOutlineChild(outline, sectiontoken.level - 1, 0);
+                if (oc != undefined)
+                    oc.addItem(sectiontext);
+            }
+            if (isHost) {
+                text = sectiontext;
+            }
+            outlineDepth = sectiontoken.level;
+        }
+
+        // Process any invisible sections attached to this host token, before rendering.
+        // The bookmark anchors to the host's page; local_index===0 prevents duplicate
+        // bookmarks when the host wraps to multiple lines.
+        if (line.token.invisibleSections != undefined && line.local_index === 0) {
+            line.token.invisibleSections.forEach((sectiontoken: any) =>
+                processSection(sectiontoken, false));
+        }
+
         if (line.type === "page_break") {
 
             if (cfg.scene_continuation_bottom && line.scene_split) {
@@ -705,46 +739,9 @@ async function generate(doc: any, opts: any, lineStructs?: Map<number, lineStruc
                     feed = print.action.feed + print.action.max * print.font_width - line.text.length * print.font_width;
                 }
 
-                var hasInvisibleSection = (line.type === "scene_heading" && line.token.invisibleSections != undefined)
-                function processSection(sectiontoken: any) {
-                    let sectiontext = sectiontoken.text;
-                    current_section_level = sectiontoken.level;
-                    currentSections.length = sectiontoken.level - 1;
-
-                    currentSections.push(he.encode(sectiontext));
-                    if (!hasInvisibleSection)
-                        feed += current_section_level * print.section.level_indent;
-                    if (cfg.number_sections) {
-                        if (sectiontoken !== current_section_token) {
-                            current_section_number = section_number(sectiontoken.level);
-                            current_section_token = sectiontoken;
-                            sectiontext = current_section_number + '. ' + sectiontext;
-                        } else {
-                            sectiontext = Array(current_section_number.length + 3).join(' ') + sectiontext;
-                        }
-
-                    }
-                    if (cfg.create_bookmarks) {
-                        if (hasInvisibleSection && !cfg.invisible_section_bookmarks) return;
-                        var oc = getOutlineChild(outline, sectiontoken.level - 1, 0);
-                        if (oc != undefined)
-                            oc.addItem(sectiontext);
-                    }
-                    if (!hasInvisibleSection) {
-                        text = sectiontext;
-                    }
-                    outlineDepth = sectiontoken.level;
-                }
-                if (line.type === 'section' || hasInvisibleSection) {
-                    if (hasInvisibleSection) {
-                        for (let i = 0; i < line.token.invisibleSections.length; i++) {
-                            processSection(line.token.invisibleSections[i]);
-                        }
-                    }
-                    else {
-                        processSection(line.token);
-                    }
-
+                if (line.type === 'section') {
+                    processSection(line.token, true);
+                    feed += current_section_level * print.section.level_indent;
                 }
 
                 if (line.type === "scene_heading") {

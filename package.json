@@ -278,7 +278,7 @@
 					"fountain.pdf.invisibleSectionBookmarks": {
 						"type": "boolean",
 						"default": true,
-						"markdownDescription": "If `#fountain.pdf.printSections#` is false, add a bookmark for the section to the following scene header instead"
+						"markdownDescription": "If `#fountain.pdf.printSections#` is false, create bookmarks for sections at the page where they were declared in the document instead of skipping them. The bookmark anchors to the next renderable content's page, which in pathological layouts may differ from the section's source page by one."
 					},
 					"fountain.pdf.defaultExportPath": {
 						"type": "string",
